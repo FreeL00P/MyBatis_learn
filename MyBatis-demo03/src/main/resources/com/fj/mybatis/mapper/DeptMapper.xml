@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fj.mybatis.mapper.DeptMapper">
+
+    <select id="getEmpAndDeptAndStepTwo" resultType="com.fj.mybatis.pojo.Dept">
+        select * from t_dept where did=#{did}
+    </select>
+
+
+    <!--处理一对多映射关系
+    ofType 表示该属性所对应集合存储数据的类型-->
+    <resultMap id="deptAndEmpResultMap" type="Dept">
+        <id property="did" column="did"/>
+        <result property="deptName" column="dept_name"/>
+        <collection property="emps" ofType="Emp" javaType="list">
+            <id property="eid" column="eid"/>
+            <result property="empName" column="emp_name"/>
+            <result property="age" column="age"/>
+            <result property="sex" column="sex"/>
+            <result property="email" column="email"/>
+        </collection>
+    </resultMap>
+    <!--    Dept getDeptAndEmp(@Param("did") Integer did);-->
+    <select id="getDeptAndEmp" resultMap="deptAndEmpResultMap">
+        select * from t_dept left join t_emp on t_emp.did=t_dept.did where t_dept.did=#{did}
+    </select>
+    <!--分步查询-->
+    <resultMap id="getDeptAndEmpByStepOneResultMap" type="Dept">
+        <id property="did" column="did"/>
+        <result property="deptName" column="dept_name"/>
+        <association property="emps"
+                     select="com.fj.mybatis.mapper.EmpMapper.getDeptAndEmpByStepTwo"
+                     column="did"
+                     fetchType="lazy"/>
+    </resultMap>
+    <select id="getDeptAndEmpByStepOne" resultMap="getDeptAndEmpByStepOneResultMap">
+        select * from t_dept where did=#{did}
+    </select>
+</mapper>
